@@ -1,39 +1,46 @@
-const csv = require('csv-parser')
-const fs = require('fs')
-const randomWords = require('random-words')
+const fs = require("fs");
+const csv = require("csv-parser");
+const randomWords = require("random-words");
 
 const users = [];
 
-function getUserName(data) {
-    return (data.Firtname[0] + "-" + data.Surname).toLowerCase()
+function generateUsername(firstname, surname) {
+  return (firstname[0] + "-" + surname).toLowerCase();
 }
 
-fs.createReadStream('input.csv')
+fs.createReadStream("input.csv")
   .pipe(csv())
-  .on('data', function (data) {
-    const userName = getUserName(data)
-    
-    let user = {
-        username: userName,
-        firstname: data.Firtname,
-        surname: data.Surname,
-      roles: data.Roles,
-      password: randomWords(3).join('-')
-    }
+  .on("data", function(row) {
+    const username = generateUsername(row.Firstname, row.Surname);
+    const password = randomWords(3).join("-");
 
-    users.push(user)
+    const user = {
+      username,
+      firstname: row.Firstname,
+      surname: row.Surname,
+      roles: row.Roles,
+      password
+    };
+
+    users.push(user);
   })
-  .on('end', function () {
-      console.table(users)
-      writeToCSV(users)
-    })
+  .on("end", function() {
+    console.table(users);
+    writeToCSVFile(users);
+  });
 
-function writeToCSV (data) {
-    const filename = 'output.csv'
+function writeToCSVFile(users) {
+  const filename = "output.csv";
 
-    fs.writeFileSync(filename,
-      [['Username', 'Password', 'Roles']].concat(
-        data.map(u => [u.username, u.password, u.roles].join(',')))
-        .join('\n'))
-    console.log(`saved as ${filename}`)
+  fs.writeFileSync(filename, extractAsCSV(users));
+  console.log(`saved as ${filename}`);
+}
+
+function extractAsCSV(users) {
+  const header = ["Username, Password, Roles"];
+  const rows = users.map(user => [
+    `${user.username}, ${user.password}, ${user.roles}`
+  ]);
+
+  return [...header, ...rows].join("\n");
 }
