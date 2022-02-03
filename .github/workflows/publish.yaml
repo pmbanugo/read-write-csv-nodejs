@@ -9,7 +9,7 @@ jobs:
   build-publish:
     runs-on: ubuntu-latest
     env:
-      USERNAME: 'pmbanugo'
+      USERNAME: '<USER_NAME>'
       IMG_NAME: 'csv-writer'
     steps:
       - name: Checkout
